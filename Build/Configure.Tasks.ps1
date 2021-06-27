@@ -18,3 +18,16 @@ task create_project_subdirectories {
 task install_developer_modules {
     Invoke-PSDepend -Path $BuildRoot
 }
+
+task add_developer_tools {
+    Get-ChildItem -Path $Path.Tools -Filter "*.ps1" -Recurse | ForEach-Object {
+        . $_.FullName
+    }
+
+}
+
+task init_git_repo {
+    git init
+    git add README.md
+    git commit -m"initial project creation"
+}

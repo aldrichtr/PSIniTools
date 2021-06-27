@@ -1,8 +1,7 @@
 
 # synopsis: run invoke-pester on the tests in the test directory
 task run_unit_tests {
-    $BuildConfig = Get-BuildConfiguration
-
+    Import-Module Pester
     $PesterConfiguration = [PesterConfiguration]@{
         Run = @{
             Path     = $Path.Test
@@ -10,13 +9,14 @@ task run_unit_tests {
             Exit     = $true
         }
         Filter = @{
-            ExcludeTag = @("ignore","broken")
+            Tag        = $TestTags
+            ExcludeTag = $ExcludeTestTags
         }
         CodeCoverage = @{
             Enabled = $false
         }
         Output = @{
-            Verbosity = 'Detailed'
+            Verbosity = $TestOutput
         }
         TestResult = @{
             Enabled      = $true
@@ -26,11 +26,14 @@ task run_unit_tests {
         IncludeVSCodeMarker = $true
     }
 
+    Import-Module $Path.ModuleFile -Force -ErrorAction Stop
+
     $testResults = Invoke-Pester -Configuration @PesterConfiguration
 }
 
 # synopsis: generate code coverage report
 task generate_coverage_report {
+    Import-Module Pester
     $configuration = [PesterConfiguration]@{
         Run = @{
             Path     = $Path.Test
@@ -52,6 +55,8 @@ task generate_coverage_report {
         }
         IncludeVSCodeMarker = $true
     }
+
+    Import-Module $Path.ModuleFile -Force -ErrorAction Stop
 
     $Coverage = Invoke-Pester -Configuration @configuration
     Write-Build Green $Coverage

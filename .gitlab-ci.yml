@@ -1,0 +1,12 @@
+
+build-job:
+  stage: build
+  tags: windows
+  script:
+    - Invoke-Build Configure, Build
+
+test-job:
+  stage: test
+  tags: windows
+  script:
+    - Invoke-Build Configure, Test

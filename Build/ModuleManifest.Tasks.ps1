@@ -37,8 +37,7 @@ task find_changed_files {
         if ( $filePath -match $fileFilterRegex ) {
             Write-Host -ForegroundColor Green "+ Added for analysis"
             $filePath
-        }
-        else {
+        } else {
             Write-Host -ForegroundColor DarkGray "~ Filtered"
         }
     }
@@ -63,15 +62,14 @@ task update_manifest_version {
     [string]$gitLog = git log --pretty=format:"%s" --merges -n 1
 
     Write-Build Yellow "- Discovering previous branch name"
-
-    if ( [regex]::IsMatch( $gitLog, "Merge branch \'(.+?)\' into" ) ) {
-        [string]$fromBranch = [regex]::Match( $gitLog, "Merge branch \'(.+?)\' into" ).Groups[1].Value
+    if ($gitLog.Length -gt 0) {
+        if ( [regex]::IsMatch( $gitLog, "Merge branch \'(.+?)\' into" ) ) {
+            [string]$fromBranch = [regex]::Match( $gitLog, "Merge branch \'(.+?)\' into" ).Groups[1].Value
+        } else {
+            [string]$fromBranch = $env:CI_COMMIT_BRANCH
+            $PreRelease = $true
+        }
     }
-    else {
-        [string]$fromBranch = $env:CI_COMMIT_BRANCH
-        $PreRelease = $true
-    }
-
     Write-Build Yellow "- Using Branch Name: $fromBranch"
 
     #Parses the CHANGELOG.MD to get the base version string
@@ -86,16 +84,16 @@ task update_manifest_version {
         }
     }
     Write-Build Yellow "- Current Module Version Tag is: $moduleVersion"
-
-    $Matches.Clear()
+    if ($Matches ) {
+        $Matches.Clear()
+    }
 
     #If an online build, then use the build ID otherwise the number of commits in the branch
     $Script:ModuleRevisionNumber = $(
         if ( $env:BUILD_NUMBER ) {
             Write-Host "- Using environment Build Number $env:BUILD_NUMBER"
             $env:BUILD_NUMBER
-        }
-        else {
+        } else {
             git rev-list HEAD --count
         }
     )
